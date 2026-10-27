@@ -1,0 +1,70 @@
+﻿<Window x:Class="WPF_RPM.ProductWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WPF_RPM"
+        mc:Ignorable="d"
+        Title="Добавить/редактировать товар" Height="250" Width="500">
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Название -->
+        <Label Grid.Row="0" 
+               Grid.Column="0"
+               Content="Название:" 
+               VerticalAlignment="Center"/>
+        <TextBox x:Name="Name"
+                 Grid.Row="0" 
+                 Grid.Column="1"
+                 Margin="0,10"
+                 VerticalContentAlignment="Center"/>
+
+        <!-- Цена -->
+        <Label Grid.Row="1" 
+               Grid.Column="0"
+               Content="Цена (руб.):" 
+               VerticalAlignment="Center"/>
+        <TextBox x:Name="Price"
+                 Grid.Row="1" 
+                 Grid.Column="1"
+                 Margin="0,10"
+                 VerticalContentAlignment="Center"/>
+
+        <!-- Количество -->
+        <Label Grid.Row="2" 
+               Grid.Column="0"
+               Content="Количество:" 
+               VerticalAlignment="Center"/>
+        <TextBox x:Name="value"
+                 Grid.Row="2" 
+                 Grid.Column="1"
+                 Margin="0,10"
+                 VerticalContentAlignment="Center"/>
+
+        <!-- Кнопки OK / Отмена -->
+        <Button x:Name="IsDefault"
+                Grid.Row="3"
+                Grid.Column="0"
+                Content="OK"
+                Margin="10,10,10,10"
+                IsDefault="True"
+                Click="Click_ok"/>
+        <Button x:Name="IsCancel"
+                Grid.Row="3"
+                Grid.Column="1"
+                Content="Отмена"
+                Margin="10,10,10,10"
+                IsCancel="True"/>
+    </Grid>
+</Window>
