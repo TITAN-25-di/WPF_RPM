@@ -5,13 +5,14 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:local="clr-namespace:WPF_RPM"
     mc:Ignorable="d"
-    Title="БД" Height="500" Width="500"
+    Title="БД" Height="500" Width="800"
     WindowStartupLocation="CenterScreen">
 
     <!-- Контейнер Grid — основной контейнер разметки -->
     <Grid>
         <!-- строки и столбцы -->
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
@@ -19,12 +20,13 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition />
             <ColumnDefinition />
+            <ColumnDefinition />
         </Grid.ColumnDefinitions>
 
         <!-- таблица списка товаров -->
         <DataGrid x:Name="table_Products"
-                  Grid.Row="0"
-                  Grid.ColumnSpan="2"
+                  Grid.Row="1"
+                  Grid.ColumnSpan="3"
                   Margin="10"
                   AutoGenerateColumns="False">
             <!-- отключаем автогенерацию столбцов, чтобы задать их явно -->
@@ -50,19 +52,45 @@
                 <DataGridTextColumn Header="Категория"
                                     Binding="{Binding Category}"
                                     Width="120"/>
+                <DataGridTextColumn Header="описание"
+                                    Binding="{Binding Category}"
+                                    Width="200"/>
             </DataGrid.Columns>
         </DataGrid>
 
-        <!-- кнопка обновить -->
+        <!-- кнопки -->
+        <!-- обновить -->
         <Button x:Name="button_refresh"
-                Grid.Row="1"
-                Grid.Column="1"
+                Grid.Row="0"
+                Grid.Column="2"
                 Content="Обновить"
                 Margin="5,5,5,5"
                 Click="refresh_click"/>
+        <!-- добавить -->
+        <Button x:Name="button_add"
+                Grid.Row="2"
+                Grid.Column="0"
+                Content="добавить"
+                Margin="5,5,5,5"
+                Click="add_click"/>
+        <!-- изменить -->
+        <Button x:Name="button_edit"
+                Grid.Row="2"
+                Grid.Column="1"
+                Content="изменить"
+                Margin="5,5,5,5"
+                Click="edit_click"/>
+        <!-- удалить -->
+        <Button x:Name="button_delete"
+                Grid.Row="2"
+                Grid.Column="2"
+                Content="удалить"
+                Margin="5,5,5,5"
+                Click="delete_click"/>
+
 
         <!-- StatusBar c элементами внутри -->
-        <StatusBar Grid.Row="1"
+        <StatusBar Grid.Row="0"
                    Grid.Column="0"
                    Margin="5,5,5,5">
             <StatusBarItem>

@@ -7,72 +7,47 @@ namespace WPF_RPM
 {
     public partial class MainWindow : Window
     {
-        // Строка подключения к LocalDB
+        // Строка подключения
         private const string ConnectionString =
             @"Server=(localdb)\MSSQLLocalDB;Database=ShopDB;Integrated Security=true;";
 
-        // Коллекция товаров, которую показывает DataGrid
-        // ObservableCollection уведомляет DataGrid об изменениях автоматически
+        // Коллекция товаров для DataGrid
         private ObservableCollection<Product> _products = new ObservableCollection<Product>();
+
+        // Репозиторий — вся работа с бд
+        private readonly ProductRepository _repo;
 
         public MainWindow()
         {
             InitializeComponent();
 
-            // Первичная загрузка данных при открытии окна
+            // Создаём репозиторий со строкой подключения
+            _repo = new ProductRepository(ConnectionString);
+
+            // Первая загрузка данных
             LoadProducts();
         }
 
-        // Загружает товары из БД и отображает их
-        // наполняет коллекцию, обновляет счётчик
+        // Загружает товары и отображает
         private void LoadProducts()
         {
             try
             {
-                using (var connection = new SqlConnection(ConnectionString))
-                {
-                    // привязываем коллекцию к DataGrid
-                    table_Products.ItemsSource = _products;
+                // обновление товаров
+                var list = _repo.Get_All();
 
-                    connection.Open(); // открыть соединение
+                // Очищаем коллекцию
+                _products.Clear();
 
-                    // SQL-запрос выборки товаров с JOIN по категории
-                    string sql = @"
-                        SELECT Products.Id,
-                               Products.Name,
-                               Products.Price,
-                               Products.Quantity,
-                               Categories.Name AS Category
-                               FROM Products LEFT JOIN Categories ON Products.CategoryId = Categories.Id
-                               ORDER BY Products.Name";
+                // Наполняем коллекцию
+                foreach (var p in list)
+                    _products.Add(p);
 
-                    //
-                    using (var command = new SqlCommand(sql, connection))
-                    using (SqlDataReader reader = command.ExecuteReader())
-                    {
-                        // Очищаем коллекцию, чтобы не дублировать
-                        _products.Clear();
-
-                        while (reader.Read()) // читаем строки по одной
-                        {
-                            // Создаём объект Product для текущей строки
-                            var product = new Product
-                            {
-                                Id = reader.GetInt32(0), // столбец 0
-                                Name = reader.GetString(1), // столбец 1
-                                Price = reader.GetDecimal(2), // столбец 2
-                                Quantity = reader.GetInt32(3), // столбец 3
-                                Category = reader.GetString(4) // столбец 4
-                            };
-
-                            // Добавляем товар в коллекцию
-                            _products.Add(product);
-                        }
-                    }
-                }
+                // Привязываем коллекцию к DataGrid
+                table_Products.ItemsSource = _products;
             }
             // SQL исключения
-            catch (SqlException ex) 
+            catch (SqlException ex)
             {
                 MessageBox.Show(
                     "Ошибка при работе с базой данных: " + ex.Message,
@@ -81,7 +56,7 @@ namespace WPF_RPM
                     MessageBoxImage.Error);
             }
             // любые другие исключения
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 MessageBox.Show(
                     "Непредвиденная ошибка: " + ex.Message,
@@ -91,15 +66,123 @@ namespace WPF_RPM
             }
             finally
             {
-                // Обновляем счётчик Загруженых записей
+                // Обновляем счётчик Загруженных записей
                 status.Text = $"Загружено записей: {_products.Count}";
             }
         }
 
-        // Обработчик кнопки Обновить - перезагружает данные
+        // Обработчик кнопки Обновить
         private void refresh_click(object sender, RoutedEventArgs e)
         {
             LoadProducts();
+        }
+
+        // Обработчик кнопки Добавить
+        private void add_click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // открываем окно добавления
+                var new_dialog = new ProductEditWindow(_repo) { Owner = this };
+
+                // если нажали Сохранить
+                if (new_dialog.ShowDialog() == true)
+                {
+                    // Сохраняем в БД и перезагружаем таблицу
+                    _repo.Add(new_dialog.Result);
+                    LoadProducts();
+                }
+            }
+            catch (SqlException ex)
+            {
+                MessageBox.Show(
+                    "Ошибка при добавлении:\n" + ex.Message,
+                    "Ошибка БД",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+        }
+
+        // Обработчик кнопки Изменить
+        private void edit_click(object sender, RoutedEventArgs e)
+        {
+            // Пытаемся получить выбранный товар
+            Product selected = table_Products.SelectedItem as Product;
+
+            // Проверяем, что строка выбрана
+            if (selected == null)
+            {
+                MessageBox.Show(
+                    "Выберите товар для редактирования.",
+                    "Внимание",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                return;
+            }
+
+            try
+            {
+                // открываем окно редактирования
+                var new_dialog = new ProductEditWindow(_repo, selected) { Owner = this };
+
+                if (new_dialog.ShowDialog() == true)
+                {
+                    // Сохраняем изменения в БД и перезагружаем таблицу
+                    _repo.Update(new_dialog.Result);
+                    LoadProducts();
+                }
+            }
+            catch (SqlException ex)
+            {
+                MessageBox.Show(
+                    "Ошибка при редактировании:\n" + ex.Message,
+                    "Ошибка БД",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+        }
+
+        // Обработчик кнопки Удалить
+        private void delete_click(object sender, RoutedEventArgs e)
+        {
+            // Пытаемся получить выбранный товар
+            Product selected = table_Products.SelectedItem as Product;
+
+            // Проверяем, что строка выбрана
+            if (selected == null)
+            {
+                MessageBox.Show(
+                    "Выберите товар для удаления.",
+                    "Внимание",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                return;
+            }
+
+            // Подтверждение с именем товара
+            var answer = MessageBox.Show(
+                $"Удалить товар «{selected.Name}»?",
+                "Подтверждение удаления",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (answer != MessageBoxResult.Yes)
+                return;
+
+            try
+            {
+                // Удаляем из БД и перезагружаем таблицу
+                _repo.Delete(selected.Id);
+                LoadProducts();
+            }
+            catch (SqlException ex)
+            {
+                MessageBox.Show(
+                    "Ошибка при удалении:\n" + ex.Message,
+                    "Ошибка БД",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
         }
     }
 }
